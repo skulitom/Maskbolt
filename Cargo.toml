@@ -1,0 +1,44 @@
+[package]
+name = "maskbolt"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Segment Anything (SAM) on CPU for AI agents: an MCP server and CLI that cut out objects, find every object, and export masks, outlines (SVG/JSON) and cutouts."
+readme = "README.md"
+keywords = ["segment-anything", "sam", "mcp", "segmentation", "cli"]
+categories = ["computer-vision", "command-line-utilities"]
+rust-version = "1.89"
+
+[lib]
+name = "maskbolt"
+path = "src/lib.rs"
+
+[[bin]]
+name = "maskbolt"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+candle-core = "0.11.0"
+candle-nn = "0.11.0"
+candle-transformers = "0.11.0"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+clap = { version = "4.6", features = ["derive"] }
+sha2 = "0.11"
+ureq = "3"
+zip = { version = "8", default-features = false, features = ["deflate"] }
+base64 = "0.22"
+rmcp = { version = "3.7", features = ["server", "macros", "transport-io", "schemars"] }
+schemars = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std", "sync"] }
+
+[dev-dependencies]
+rmcp = { version = "3.7", features = ["server", "client", "macros", "transport-io", "transport-child-process", "schemars"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std", "io-util", "sync", "process", "time"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+strip = true

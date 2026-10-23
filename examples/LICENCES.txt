@@ -1,0 +1,14 @@
+Example images
+==============
+
+chelsea.png  "Chelsea the cat", scikit-image sample data (skimage.data.chelsea), by Stefan van der Walt. CC0.
+coffee.png   "Coffee cup", scikit-image sample data (skimage.data.coffee), by Rachel Michetti. CC0.
+corn.png     "Corn kernels in bowl - Massachusetts.jpg" by Daderot, Wikimedia Commons, CC0 1.0 (public domain
+             dedication), resized to 1200 px wide:
+             https://commons.wikimedia.org/wiki/File:Corn_kernels_in_bowl_-_Massachusetts.jpg
+bed.png      Synthetic: plywood offcuts on a laser bed, drawn by make_bed.py (in this folder) for Maskbolt's tests.
+             bed-truth-1.png .. bed-truth-5.png are the true masks of the five pieces and bed-truth.json their
+             shapes (0.5 mm per pixel). Same licence as Maskbolt (MIT).
+
+tests/data/proto-cutout-*.png are masks from the 2026-10-23 Node prototype (8-bit SAM ViT-B) on chelsea.png and
+coffee.png, kept as reference outputs for the end-to-end tests; they are crops of the CC0 images above.

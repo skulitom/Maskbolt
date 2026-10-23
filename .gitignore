@@ -1,0 +1,10 @@
+/target/
+# Model weights are downloaded into a user cache folder; never commit them.
+*.pth
+*.pt
+*.safetensors
+*.safetensors.tmp
+*.part
+/models/
+# Scratch outputs
+/out/
