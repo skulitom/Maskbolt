@@ -192,3 +192,43 @@ fn p3_images_open_by_content_not_extension() {
     assert_eq!(s.open(&p).unwrap().width, 200);
     std::fs::remove_dir_all(&dir).ok();
 }
+
+// Release CI (2026-10-24): an absolute path that names the root the way it was given, not as resolved, was
+// refused as "outside" (macOS's /var -> /private/var temp folder, Windows' 8.3 RUNNER~1 temp folder). Here the
+// root is given through a link (a symlink on Unix, a junction on Windows).
+#[test]
+fn absolute_paths_through_the_given_root_form_are_inside() {
+    let base = temp_dir("given-root");
+    let real = base.join("real");
+    std::fs::create_dir_all(real.join("sub")).unwrap();
+    std::fs::write(real.join("sub").join("a.png"), b"x").unwrap();
+    std::fs::write(base.join("secret.png"), b"x").unwrap();
+    let link = base.join("link");
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(&real, &link).unwrap();
+    #[cfg(windows)]
+    {
+        let made = std::process::Command::new("cmd").args(["/C", "mklink", "/J"]).arg(&link).arg(&real).output().map(|o| o.status.success()).unwrap_or(false);
+        if !made {
+            eprintln!("skipped: could not make a junction");
+            std::fs::remove_dir_all(&base).ok();
+            return;
+        }
+    }
+    let root = Root::new(&link).unwrap();
+    let given = |rel: &str| link.join(rel).to_str().unwrap().to_string();
+    let read = root.read(&given("sub/a.png")).expect("an absolute path through the given root is inside");
+    assert_eq!(read, root.read("sub/a.png").unwrap(), "it names the same file as the relative path");
+    let w = root.write(&given("out/m.json")).unwrap();
+    assert!(w.starts_with(root.dir()), "{} is not under {}", w.display(), root.dir().display());
+    // Leaving the given root lexically is still outside, whether or not the file exists.
+    for p in [given("../secret.png"), given("sub/../../secret.png"), base.join("secret.png").to_str().unwrap().to_string()] {
+        assert!(root.read(&p).unwrap_err().to_string().contains("outside the allowed root"), "{p} was accepted");
+        assert!(root.write(&p).unwrap_err().to_string().contains("outside the allowed root"), "{p} was accepted for writing");
+    }
+    #[cfg(windows)]
+    std::fs::remove_dir(&link).ok();
+    #[cfg(unix)]
+    std::fs::remove_file(&link).ok();
+    std::fs::remove_dir_all(&base).ok();
+}

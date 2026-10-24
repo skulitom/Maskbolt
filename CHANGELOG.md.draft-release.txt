@@ -47,5 +47,9 @@ Hardening after the independent review (2026-10-24):
   arithmetic no longer overflows; click replies name the three levels exactly as `level` picks them; clearer
   tool descriptions; the MCP server survives a panic in a tool (mutex poisoning); a failed model download is
   retried on the next open.
+- Fixed: an absolute path that named the MCP root as it was given, rather than as resolved, was refused as
+  outside the root (macOS's /var -> /private/var temp folders, Windows 8.3 short names such as RUNNER~1, a root
+  behind a link, junction or subst drive). Such paths are now rewritten onto the resolved root and checked as
+  before; leaving the root with `..` is still refused.
 - Tests: the 816-byte test checkpoint `tests/data/tiny.pth` is now committed (it was caught by the `*.pth`
   ignore rule, so `cargo test` failed in a fresh clone).

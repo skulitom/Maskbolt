@@ -52,7 +52,7 @@ jobs:
       - name: Clippy (all targets, warnings are errors)
         run: cargo "+$RUST_TOOLCHAIN" clippy --locked --all-targets -- -D warnings
       - name: Tests (the model-backed end-to-end tests are ignored; they need the 375 MB weights)
-        run: cargo "+$RUST_TOOLCHAIN" test --locked
+        run: cargo "+$RUST_TOOLCHAIN" test --locked --no-fail-fast
 
   msrv:
     name: Minimum Rust (Cargo.toml rust-version)
