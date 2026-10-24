@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "maskbolt",
+  "displayName": "Maskbolt Segment Anything",
+  "version": "0.1.0",
+  "description": "Segment Anything on your CPU: cut objects out of images as transparent PNGs, find every object, and export masks, SVG or JSON outlines and label images. Local, no GPU, no Python, no account.",
+  "author": {
+    "name": "skulitom",
+    "url": "https://github.com/skulitom"
+  },
+  "homepage": "https://github.com/skulitom/Maskbolt#readme",
+  "repository": "https://github.com/skulitom/Maskbolt",
+  "license": "MIT",
+  "keywords": [
+    "segment-anything",
+    "sam",
+    "segmentation",
+    "cutout",
+    "background-removal",
+    "masks",
+    "svg-outlines",
+    "image",
+    "mcp"
+  ],
+  "mcpServers": {
+    "maskbolt": {
+      "command": "maskbolt",
+      "args": ["mcp", "--root", "${CLAUDE_PROJECT_DIR}"],
+      "timeout": 600000
+    }
+  }
+}

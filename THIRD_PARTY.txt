@@ -40,8 +40,10 @@ The full texts of both licences are in sections 4 and 5 below.
 3. Rust crates in the maskbolt binary (normal dependencies, from `cargo tree` and `cargo metadata`)
 --------------------------------------------------------------------------------------------------
 Each crate's licence is named below (from its Cargo.toml). Most crates' sources on crates.io include their licence
-files, but not all (candle-nn and candle-transformers do not), and a binary carries none: before shipping binaries,
-generate a full licence bundle (for example with cargo-about). Notes that need more than the usual MIT/Apache line:
+files, but not all (candle-nn and candle-transformers do not), and a binary carries none: so every release archive
+and the MCPB bundle also carry THIRD_PARTY_NOTICES.md, the licence texts of that build target's normal dependencies,
+generated from their crate sources by mcpb/notices.mjs (candle-nn and candle-transformers use candle-core's text,
+pulp-wasm-simd-flag uses pulp's). Notes that need more than the usual MIT/Apache line:
 - candle-core, candle-nn, candle-transformers 0.11.0 (Hugging Face): MIT OR Apache-2.0.
 - rmcp, rmcp-macros 3.7.0 (Model Context Protocol Rust SDK): Apache-2.0.
 - safetensors, tokenizers (Hugging Face): Apache-2.0.

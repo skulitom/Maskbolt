@@ -6,5 +6,7 @@
 *.safetensors.tmp
 *.part
 /models/
+# The 816-byte test checkpoint written by tests/data/make_tiny_pth.py; tests/models.rs needs it in every clone.
+!/tests/data/tiny.pth
 # Scratch outputs
 /out/

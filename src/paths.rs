@@ -5,21 +5,33 @@
 //! system would silently rewrite (trailing dots or spaces, `:` streams) and anything that `..` takes out of the
 //! root are refused with one message, whether or not the file exists. Only then is the file system consulted,
 //! to resolve links and junctions, and the result is checked again.
+//!
+//! An absolute path may name the root either as resolved or as it was given (when the two differ: macOS's
+//! `/var` is a link to `/private/var`, Windows temp folders often hold 8.3 short names such as `RUNNER~1`, or the
+//! root sits behind a link or `subst` drive). A path under the given form is rewritten lexically onto the
+//! resolved root, so it names exactly the file its root-relative form names, and is then checked the same way.
 use anyhow::{bail, Context, Result};
 use std::path::{Component, Path, PathBuf, Prefix};
 
 #[derive(Clone, Debug)]
 pub struct Root {
     dir: PathBuf,
+    /// The root as given, made absolute without touching the file system, when it differs from `dir`.
+    given: Option<PathBuf>,
 }
 
 impl Root {
     pub fn new(dir: &Path) -> Result<Self> {
-        let dir = canonical(dir).with_context(|| format!("root directory {} does not exist", dir.display()))?;
-        if !dir.is_dir() {
-            bail!("root {} is not a directory", dir.display());
+        let canon = canonical(dir).with_context(|| format!("root directory {} does not exist", dir.display()))?;
+        if !canon.is_dir() {
+            bail!("root {} is not a directory", canon.display());
         }
-        Ok(Self { dir })
+        // Only a plain absolute form (no `.` or `..`, which std::path::absolute keeps on Unix) can stand in for it.
+        let given = std::path::absolute(dir)
+            .ok()
+            .filter(|g| g.components().all(|c| matches!(c, Component::Prefix(_) | Component::RootDir | Component::Normal(_))))
+            .filter(|g| !same_path(g, &canon));
+        Ok(Self { dir: canon, given })
     }
 
     /// A root for the MCP server: like `new`, but a drive or file-system root and the home folder are refused,
@@ -67,7 +79,8 @@ impl Root {
         let mut out = match comps.peek() {
             Some(Component::Prefix(px)) => {
                 let Prefix::Disk(d) = px.kind() else { return Err(self.outside(p)) };
-                if root_drive(&self.dir).map(|r| r.to_ascii_uppercase()) != Some(d.to_ascii_uppercase()) {
+                let drive = Some(d.to_ascii_uppercase());
+                if !std::iter::once(&self.dir).chain(&self.given).any(|r| root_drive(r).map(|r| r.to_ascii_uppercase()) == drive) {
                     return Err(self.outside(p));
                 }
                 comps.next();
@@ -105,10 +118,17 @@ impl Root {
                 _ => return Err(self.outside(p)),
             }
         }
-        if !inside(&out, &self.dir) {
-            return Err(self.outside(p));
+        if inside(&out, &self.dir) {
+            return Ok(out);
         }
-        Ok(out)
+        if let Some(given) = &self.given {
+            if inside(&out, given) {
+                // The same file under the resolved root: keep only what follows the given root's components.
+                let rest: PathBuf = out.components().skip(given.components().count()).collect();
+                return Ok(self.dir.join(rest));
+            }
+        }
+        Err(self.outside(p))
     }
 
     /// An existing file inside the root (links and junctions resolved and checked).
