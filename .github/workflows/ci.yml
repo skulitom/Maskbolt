@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: Test and clippy (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    defaults:
+      run:
+        shell: bash
+    env:
+      CARGO_TERM_COLOR: never
+      RUST_BACKTRACE: '1'
+      # The toolchain the release builds use; the minimum (Cargo.toml rust-version) is checked below.
+      RUST_TOOLCHAIN: '1.98.1'
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install Rust with clippy
+        run: |
+          set -euo pipefail
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component clippy --no-self-update
+          rustc "+$RUST_TOOLCHAIN" -vV
+      - name: Cache Cargo downloads and dependency builds
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            target
+          # One entry per system, toolchain and lockfile; Maskbolt itself is rebuilt from the checkout every run.
+          key: cargo-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.RUST_TOOLCHAIN }}-${{ hashFiles('Cargo.lock', '.cargo/config.toml') }}
+      - name: Clippy (all targets, warnings are errors)
+        run: cargo "+$RUST_TOOLCHAIN" clippy --locked --all-targets -- -D warnings
+      - name: Tests (the model-backed end-to-end tests are ignored; they need the 375 MB weights)
+        run: cargo "+$RUST_TOOLCHAIN" test --locked
+
+  msrv:
+    name: Minimum Rust (Cargo.toml rust-version)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Check every target with the minimum supported compiler
+        run: |
+          set -euo pipefail
+          msrv=$(sed -n 's/^rust-version *= *"\([^"]*\)".*/\1/p' Cargo.toml | tr -d '\r')
+          test -n "$msrv"
+          rustup toolchain install "$msrv" --profile minimal --no-self-update
+          cargo "+$msrv" check --locked --all-targets
+
+  distribution:
+    name: Packaging scripts (node --test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Bundle, archive, notices and registry-entry tests
+        run: node --test mcpb/mcpb.test.mjs

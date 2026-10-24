@@ -1,0 +1,13 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.skulitom/maskbolt",
+  "title": "Maskbolt Segment Anything on CPU",
+  "description": "Segment Anything on CPU for agents: cut out objects, find every object, export masks and outlines.",
+  "version": "0.1.0",
+  "websiteUrl": "https://github.com/skulitom/Maskbolt#readme",
+  "repository": {
+    "url": "https://github.com/skulitom/Maskbolt",
+    "source": "github",
+    "id": "1432055660"
+  }
+}

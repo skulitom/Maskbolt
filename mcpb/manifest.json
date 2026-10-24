@@ -1,0 +1,41 @@
+{
+  "manifest_version": "0.3",
+  "name": "maskbolt",
+  "display_name": "Maskbolt",
+  "description": "Segment Anything on CPU: cut out objects, find every object in an image, export masks and outlines.",
+  "long_description": "Maskbolt runs Meta's Segment Anything (SAM ViT-B) on your CPU, with no GPU, Python or account. Open an image, click an object or find every object, check numbered previews, remove wrong masks, add missed ones, and export transparent cutouts, overlays, SVG outlines (with holes, optionally in millimetres), JSON and label images. This bundle contains the Windows x64 binary. The first image you open downloads the model once (375 MB, Apache-2.0, from Meta's official URL), checks its SHA-256 and keeps it in %LOCALAPPDATA%\\maskbolt\\models; after that it runs offline. Encoding takes about 7 seconds per image on a 16-core desktop CPU (longer on smaller machines), and memory peaks at 2 to 3.3 GB for one image and about 7 GB for tiled finds; tiled finds of dense images take minutes and can outlast a client's tool timeout. Maskbolt reads and writes only inside the folder you choose, and never replaces an existing file unless asked.",
+  "author": { "name": "skulitom", "url": "https://github.com/skulitom" },
+  "repository": { "type": "git", "url": "https://github.com/skulitom/Maskbolt" },
+  "homepage": "https://github.com/skulitom/Maskbolt#readme",
+  "documentation": "https://github.com/skulitom/Maskbolt#mcp",
+  "support": "https://github.com/skulitom/Maskbolt/issues",
+  "server": {
+    "type": "binary",
+    "entry_point": "server/maskbolt.exe",
+    "mcp_config": {
+      "command": "${__dirname}/server/maskbolt.exe",
+      "args": ["mcp", "--root", "${user_config.root}"]
+    }
+  },
+  "tools": [
+    { "name": "maskbolt_open", "description": "Open an image (PNG, JPEG or WebP) inside the chosen folder and encode it with Segment Anything." },
+    { "name": "maskbolt_find", "description": "Find every object with grid prompts over the image, a region or overlapping tiles, with a numbered preview." },
+    { "name": "maskbolt_click", "description": "Segment one object from points on it, points off it and/or a box, at the part, object or group level." },
+    { "name": "maskbolt_view", "description": "Show the numbered masks over the image, or a zoomed region, with each mask's area, box and score." },
+    { "name": "maskbolt_remove", "description": "Remove wrong, merged or duplicate masks by id." },
+    { "name": "maskbolt_gaps", "description": "List uncovered patches that look like the masks found so far, or click them all with add: true." },
+    { "name": "maskbolt_fill_holes", "description": "Fill holes inside masks, such as a highlight SAM left out." },
+    { "name": "maskbolt_export", "description": "Write a transparent cutout, numbered overlay, SVG outlines, JSON outlines or a labels PNG." }
+  ],
+  "compatibility": { "platforms": ["win32"] },
+  "user_config": {
+    "root": {
+      "type": "directory",
+      "title": "Image folder",
+      "description": "Existing folder that holds your images. Maskbolt reads images and writes exports only inside it, and never replaces an existing file unless a call asks it to. Choose a project or image folder: a drive root or your home folder is refused. Folder checks are not an OS sandbox.",
+      "required": true
+    }
+  },
+  "keywords": ["segment-anything", "sam", "segmentation", "cutout", "background-removal", "masks", "svg", "image", "mcp"],
+  "license": "MIT"
+}

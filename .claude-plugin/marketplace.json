@@ -1,0 +1,17 @@
+{
+  "name": "maskbolt",
+  "owner": {
+    "name": "skulitom",
+    "url": "https://github.com/skulitom"
+  },
+  "description": "Maskbolt for Claude Code: the maskbolt MCP server and the maskbolt skill. Needs the maskbolt executable on PATH, from the Maskbolt v0.1.0 release archive or cargo install.",
+  "plugins": [
+    {
+      "name": "maskbolt",
+      "source": "./",
+      "description": "Segment Anything on your CPU: cut objects out of images, find every object, and export masks and SVG or JSON outlines.",
+      "category": "productivity",
+      "tags": ["segment-anything", "segmentation", "cutout", "background-removal", "svg"]
+    }
+  ]
+}
