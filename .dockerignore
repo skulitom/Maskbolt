@@ -1,10 +1,11 @@
-# The image build copies only Cargo.toml, Cargo.lock, .cargo/, src/, LICENSE and THIRD_PARTY.txt; keep the context small.
+# The image build copies only Cargo.toml, Cargo.lock, .cargo/, src/, mcpb/, LICENSE and THIRD_PARTY.txt; keep the
+# context small.
 target/
 .git/
 .github/
 evals/
 examples/
-mcpb/
+mcpb/*.test.mjs
 tests/
 out/
 models/

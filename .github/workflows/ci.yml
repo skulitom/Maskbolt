@@ -101,6 +101,10 @@ jobs:
           version=$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' Cargo.toml | head -n 1)
           test "$(docker run --rm maskbolt:ci version)" = "maskbolt $version"
           test "$(docker run --rm --entrypoint id maskbolt:ci -u)" = "10001"
+          # The dependency licence texts ship in the image, as in the release archives.
+          docker run --rm --entrypoint cat maskbolt:ci /usr/share/doc/maskbolt/THIRD_PARTY_NOTICES.md > notices.md
+          grep -q '^# Third-party license notices' notices.md
+          grep -q '| webpki-roots |' notices.md
           {
             printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}'
             sleep 2

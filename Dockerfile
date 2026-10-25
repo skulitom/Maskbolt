@@ -10,11 +10,18 @@
 
 # The toolchain the release builds use (.github/workflows/release.yml); Cargo.toml's rust-version is the minimum.
 FROM rust:1.98.1-slim-trixie AS build
+# Node runs mcpb/notices.mjs, which writes the licence texts of every Rust dependency in this build, as the release
+# archives carry them (THIRD_PARTY_NOTICES.md). Node 24 is what the release workflow uses.
+COPY --from=node:24-trixie-slim /usr/local/bin/node /usr/local/bin/node
 WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY .cargo .cargo
 COPY src src
-RUN cargo build --release --locked --bin maskbolt
+COPY mcpb mcpb
+RUN cargo build --release --locked --bin maskbolt \
+    && host=$(rustc -vV | sed -n 's/^host: //p') \
+    && cargo fetch --locked --target "$host" \
+    && node mcpb/notices.mjs --target "$host" --out target/THIRD_PARTY_NOTICES.md
 
 FROM debian:trixie-slim
 # HTTPS for the model download uses rustls with built-in root certificates, so the image needs no extra packages.
@@ -23,6 +30,7 @@ RUN useradd --create-home --uid 10001 maskbolt \
     && chown maskbolt:maskbolt /data /cache
 COPY --from=build /src/target/release/maskbolt /usr/local/bin/maskbolt
 COPY LICENSE THIRD_PARTY.txt /usr/share/doc/maskbolt/
+COPY --from=build /src/target/THIRD_PARTY_NOTICES.md /usr/share/doc/maskbolt/
 USER maskbolt
 ENV MASKBOLT_MODEL_DIR=/cache
 WORKDIR /data
