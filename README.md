@@ -148,6 +148,10 @@ For comparison, the Node prototype (8-bit ONNX) took 199 s for the 32x32 corn ru
   up to that tolerance. Coordinates are image pixels from the top-left corner (pixel x covers [x, x+1]).
 - The gap check is a colour heuristic: it finds look-alikes of what is already masked, not new kinds of object.
 
+## Privacy
+
+Maskbolt runs on your computer; its only network request is the one-time model download. [Privacy](PRIVACY.md)
+
 ## Licence
 
 MIT. Model weights: Apache-2.0 (Meta's SAM; MobileSAM). `src/sam_decoder.rs` is adapted from candle (MIT OR
