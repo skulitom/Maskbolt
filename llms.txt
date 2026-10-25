@@ -1,0 +1,32 @@
+# Maskbolt
+
+> Segment Anything (SAM) on the CPU for AI agents and scripts: one MIT-licensed Rust binary that is both an MCP server and a CLI. It cuts objects out of images as transparent PNGs, finds and counts every object in a photo, and exports masks, numbered overlays, SVG or JSON outlines (with holes, optionally in millimetres) and label images. No Python, no GPU, no account; nothing is uploaded.
+
+Install the binary for your system from the latest GitHub release (https://github.com/skulitom/Maskbolt/releases/latest; Windows x64, Linux x64 with glibc 2.35 or newer, macOS Apple silicon and Intel), check it against SHA256SUMS and put `maskbolt` on PATH; or build it with `cargo install --git https://github.com/skulitom/Maskbolt --tag v0.1.0 --locked` (Rust 1.89 or newer). It is not on crates.io. The first image downloads the SAM ViT-B model once (375 MB, SHA-256 checked; MobileSAM, 41 MB, with `--model tiny`). Claude Code users can add the plugin with `claude plugin marketplace add skulitom/Maskbolt` and `claude plugin install maskbolt@maskbolt`; Claude Desktop users on Windows x64 can open `maskbolt-windows-x64.mcpb` from the release. The MCP Registry name is io.github.skulitom/maskbolt. A Dockerfile in the repository builds a Linux image of the MCP server.
+
+Use Maskbolt when a user asks to cut out, isolate or mask an object in a photo, remove the background behind one object, count or segment the objects in an image, or trace shapes in a photo into vector outlines (sprites, stickers, product shots, laser or CNC offcuts). Do not use it to resize, crop, convert or edit images, to name what is in an image (SAM finds shapes, not labels), for video, or for text prompts such as "all the dogs": prompts are points and boxes, chosen from the numbered previews. Encoding one image takes about 6.5 s on a 16-core desktop CPU (longer on a laptop); a tiled find over small objects takes minutes.
+
+## Start here
+
+- [README](https://github.com/skulitom/Maskbolt/blob/main/README.md): install, the CLI, MCP setup, the speed table measured on 2026-10-23 and the limits.
+- [Agent skill](https://raw.githubusercontent.com/skulitom/Maskbolt/main/skills/maskbolt/SKILL.md): when to use Maskbolt and when not, paths and coordinates, and the loop that works (open, find or click, view, remove, click missed ones, gaps, export).
+- [Latest release](https://github.com/skulitom/Maskbolt/releases/latest): archives for four systems, the Windows MCPB bundle and SHA256SUMS.
+
+## MCP tools
+
+- `maskbolt_open`: open an image and encode it (clears all masks); downloads the model on first use.
+- `maskbolt_find`: find every object with grid prompts, over the whole image or overlapping tiles (`tile: 400` for small or dense objects).
+- `maskbolt_click`: segment one object from include and exclude points and an optional box; returns all three SAM levels (part, object, group).
+- `maskbolt_view`: a numbered preview of the masks, zoomable with `region`.
+- `maskbolt_remove`: remove masks by id.
+- `maskbolt_gaps`: list uncovered patches that look like what is already masked; `add: true` clicks them.
+- `maskbolt_fill_holes`: fill holes SAM left inside masks.
+- `maskbolt_export`: overlay PNG, cutout PNG, SVG, JSON or labels PNG; never replaces an existing file unless `overwrite: true`.
+
+The server reads and writes only inside its `--root` folder and refuses a drive root or the home folder as the root.
+
+## Optional
+
+- [Changelog](https://github.com/skulitom/Maskbolt/blob/main/CHANGELOG.md)
+- [Releasing and the MCPB bundle](https://github.com/skulitom/Maskbolt/blob/main/mcpb/PUBLISHING.md)
+- [Third-party licences](https://github.com/skulitom/Maskbolt/blob/main/THIRD_PARTY.txt): candle (MIT OR Apache-2.0); model weights Apache-2.0 (Meta's SAM, MobileSAM).

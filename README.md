@@ -4,6 +4,20 @@ Segment Anything (SAM) on your CPU, for AI agents and scripts. Maskbolt is one R
 lets an agent open an image, find every object or click one, look at numbered previews, fix mistakes, and export
 cutouts, outlines and masks; and a CLI for the same jobs in one command. No Python, no GPU.
 
+- **Who it's for:** people who want an AI agent (Claude Code, Claude Desktop or another MCP client) or a script to
+  get objects out of photos: game and web makers turning photos into sprites and cutouts, makers who need the outline of
+  a part or an offcut as SVG in millimetres for a laser cutter or a nesting tool, and developers whose agents need
+  masks.
+- **Use it when** you need a transparent cutout, a mask or an outline (SVG with holes, or JSON) of particular objects
+  in an image, or every object found, counted and outlined, on a computer with no GPU, offline after one model
+  download.
+- **Don't use it for** text prompts ("all the dogs": SAM takes points and boxes, which the agent picks from numbered
+  previews), naming what is in an image, video, real-time work (encoding takes about 6.5 s per image on a 16-core
+  desktop CPU), or plain one-subject background removal in bulk, where a dedicated background remover is quicker.
+- **Compared with** other MCP servers: a search of GitHub, mcp.so, Glama and the official MCP Registry on
+  24 October 2026 found no other MCP server built on Segment Anything. The nearest are background-removal servers,
+  which cut out one main subject and have no clicks, object finding or outline export.
+
 - One click cuts an object out as a transparent PNG; the three nested SAM masks (part, object, group) are one
   argument away.
 - "Find everything" runs grid prompts over the whole image or over overlapping tiles (each re-encoded at full
@@ -79,6 +93,15 @@ with what it holds). `find` prints a JSON report (counts, drop reasons, timings,
 - **Claude Desktop (Windows x64):** download `maskbolt-windows-x64.mcpb` from the release, double-click it (or
   Settings > Extensions > Advanced settings > Install Extension) and choose your image folder.
 - **MCP Registry:** listed as `io.github.skulitom/maskbolt`, with the Windows bundle and its SHA-256.
+- **Docker (Linux image):** the repository's Dockerfile builds the MCP server; mount your image folder at `/data`
+  and keep the model in a volume:
+
+      docker build -t maskbolt https://github.com/skulitom/Maskbolt.git
+      docker run -i --rm -v "$PWD:/data" -v maskbolt-models:/cache maskbolt
+
+  As an MCP server: `{"command": "docker", "args": ["run", "-i", "--rm", "-v", "/path/to/images:/data", "-v",
+  "maskbolt-models:/cache", "maskbolt"]}`. The server runs as user 10001, so on Linux the folder must be writable by
+  that user for exports. `docker run --rm maskbolt version` runs the CLI.
 
 Long tiled finds take minutes: the plugin gives Maskbolt's tools a 10-minute timeout; other clients may stop
 waiting sooner (see Limits).

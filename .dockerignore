@@ -1,0 +1,13 @@
+# The image build copies only Cargo.toml, Cargo.lock, .cargo/, src/, LICENSE and THIRD_PARTY.txt; keep the context small.
+target/
+.git/
+.github/
+evals/
+examples/
+mcpb/
+tests/
+out/
+models/
+*.pth
+*.pt
+*.safetensors

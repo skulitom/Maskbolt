@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- A Dockerfile builds a Linux image of the MCP server (non-root user, `/data` as the root, the model cached in
+  `/cache`), for MCP catalogs that build from a Dockerfile; CI builds it and checks that the server lists its eight
+  tools.
+- `llms.txt` indexes the documentation for agents; the README opens with who Maskbolt is for, when to use it and when
+  not, and how it compares with other MCP servers.
+
 ## 0.1.0 (2026-10-24)
 
 First version: a Rust port of the 2026-10-23 Node prototype.
