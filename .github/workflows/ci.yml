@@ -84,3 +84,39 @@ jobs:
           package-manager-cache: false
       - name: Bundle, archive, notices and registry-entry tests
         run: node --test mcpb/mcpb.test.mjs
+
+  docker:
+    name: Docker image (for MCP catalogs)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Build the image from the Dockerfile
+        run: docker build --tag maskbolt:ci .
+      - name: The CLI runs, and the MCP server starts as a non-root user and lists its eight tools
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version *= *"\([^"]*\)".*/\1/p' Cargo.toml | head -n 1)
+          test "$(docker run --rm maskbolt:ci version)" = "maskbolt $version"
+          test "$(docker run --rm --entrypoint id maskbolt:ci -u)" = "10001"
+          # The dependency licence texts ship in the image, as in the release archives.
+          docker run --rm --entrypoint cat maskbolt:ci /usr/share/doc/maskbolt/THIRD_PARTY_NOTICES.md > notices.md
+          grep -q '^# Third-party license notices' notices.md
+          grep -q '| webpki-roots |' notices.md
+          {
+            printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"ci","version":"0"}}}'
+            sleep 2
+            printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}' '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
+            sleep 5
+          } | timeout 120 docker run -i --rm maskbolt:ci > replies.jsonl
+          python3 - "$version" <<'EOF'
+          import json, sys
+          replies = {r.get("id"): r for r in map(json.loads, open("replies.jsonl")) if "id" in r}
+          info = replies[1]["result"]["serverInfo"]
+          tools = sorted(t["name"] for t in replies[2]["result"]["tools"])
+          print(info["name"], info["version"], len(tools), "tools:", " ".join(tools))
+          assert info["name"] == "maskbolt" and info["version"] == sys.argv[1], info
+          assert len(tools) == 8 and all(t.startswith("maskbolt_") for t in tools), tools
+          EOF
